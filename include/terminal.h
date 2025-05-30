@@ -41,7 +41,7 @@ class terminal{
     void drop_table(const std::string& table_name);
     void insert_into_table(const std::string& table_name,const row& values);
     void select_from_table(const std::string& table_name,const std::vector<std::string>& column_names,
-                           const std::string& condition = "");//注意条件是可以有and和or之类连接的
+                           const std::string& condition = "");//注意条件是可以有and和or之类连接的,所以交给函数自己判断
     void update_table(const std::string& table_name,const std::string& column_name,
                       const record& value, const std::string& condition = "");
     void delete_from_table(const std::string& table_name, const std::string& condition = "");
