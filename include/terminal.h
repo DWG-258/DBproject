@@ -7,6 +7,7 @@
 #include<ranges>
 #include <vector>
 #include"database.h"
+#include"helper.h"
 class terminal{
     using record = std::variant<int,double,std::string>;
     using row= std::vector<record>;
@@ -36,7 +37,7 @@ class terminal{
     void create_db(const std::string& db_name,const std::string& password = "");
     void drop_db(const std::string& db_name);
     void use_db(const std::string& db_name);
-    void create_table(const std::string& table_name);
+    void create_table(const std::string& table_name,const std::string& column_defintions);
     void drop_table(const std::string& table_name);
     void insert_into_table(const std::string& table_name,const row& values);
     void select_from_table(const std::string& table_name,const std::vector<std::string>& column_names,
