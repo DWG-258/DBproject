@@ -11,6 +11,7 @@
 #include<limits.h>
 #include <unistd.h>
 #include <fstream>
+#include <algorithm>
 #include"database.h"
 #include"helper.h"
 class terminal{
@@ -25,7 +26,7 @@ class terminal{
     bool switched=false;
     std::set<std::string> keywords = {
         "create", "drop", "use", "insert", "select", "update", "delete",
-          "exit", "help","database","table","where","into","values"
+          "exit", "help","database","table","where","into","values","int","double","string","primary key",
     };
     std::set<std::string> command_prefixes = {
         "create database", "drop database", "use","create table",
@@ -33,22 +34,6 @@ class terminal{
     };
     std::unique_ptr<database> current_database;//当前使用的数据库指针
     std::string current_command;
-
-    bool db_test(const std::string& db_name) const{
-        if(current_database){
-            std::cerr << "Error: A database is already in use.Please close it before using another one."<<std::endl;
-            return false;
-        }
-        if(db_name.empty()){
-            std::cerr << "Error: Database name cannot be empty."<<std::endl;
-            return false;
-        }
-        if(databases.find(db_name) == databases.end()){
-            std::cerr << "Error: Database "<< db_name << " does not exist." << std::endl;
-            return false;
-        }
-        return true;
-    }
     public:
     terminal() : prompt("dblite> "),current_db(""),current_database(nullptr){
         //终端直接切换到data目录下，这样的话可以直接在data目录下创建数据库
@@ -107,6 +92,7 @@ class terminal{
                       const record& value, const std::string& condition = "");
     void delete_from_table(const std::string& table_name, const std::string& condition = "");
     void exit();
+    void close_db();
     std::string get_prompt() const {
         return prompt;
     }
