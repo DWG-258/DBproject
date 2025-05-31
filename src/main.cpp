@@ -11,6 +11,10 @@ int main(int argc,char* argv[]){
     std::cout<<term.get_prompt();
     while(std::getline(std::cin,line)){
          
+        if(line.empty()) {
+            std::cout << term.get_prompt();
+            continue;
+        }
             try{
                 if(term.find_command(line)){
                     auto start = std::chrono::high_resolution_clock::now();

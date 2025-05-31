@@ -6,6 +6,11 @@
 #include <iostream>
 #include<ranges>
 #include <vector>
+#include <memory>
+#include <filesystem>
+#include<limits.h>
+#include <unistd.h>
+#include <fstream>
 #include"database.h"
 #include"helper.h"
 class terminal{
@@ -13,8 +18,11 @@ class terminal{
     using row= std::vector<record>;
     using table_data = std::set<row>;
     private:
-    std::string prompt;
-    std::string current_db;
+    std::string prompt;//命令行提示符
+    std::string current_db;//当前使用的数据库名称
+    std::set<std::string> databases;//存储所有数据库的名称
+    std::filesystem::path origin_path;
+    bool switched=false;
     std::set<std::string> keywords = {
         "create", "drop", "use", "insert", "select", "update", "delete",
           "exit", "help","database","table","where","into","values"
@@ -23,10 +31,63 @@ class terminal{
         "create database", "drop database", "use","create table",
         "drop table", "select","delete", "insert into","update","help","exit"
     };
-    std::unique_ptr<database> current_database;
+    std::unique_ptr<database> current_database;//当前使用的数据库指针
     std::string current_command;
+
+    bool db_test(const std::string& db_name) const{
+        if(current_database){
+            std::cerr << "Error: A database is already in use.Please close it before using another one."<<std::endl;
+            return false;
+        }
+        if(db_name.empty()){
+            std::cerr << "Error: Database name cannot be empty."<<std::endl;
+            return false;
+        }
+        if(databases.find(db_name) == databases.end()){
+            std::cerr << "Error: Database "<< db_name << " does not exist." << std::endl;
+            return false;
+        }
+        return true;
+    }
     public:
-    terminal() : prompt("dblite> "),current_db(""),current_database(nullptr){}
+    terminal() : prompt("dblite> "),current_db(""),current_database(nullptr){
+        //终端直接切换到data目录下，这样的话可以直接在data目录下创建数据库
+        //bin和data是同级目录，bin目录下是可执行文件，data目录下是数据库文件
+        origin_path = std::filesystem::current_path();
+        std::filesystem::path object = origin_path;
+        //只有两种情况需要切换到data目录下：
+        //1.当前目录是bin目录
+        //2.当前目录是bin的父目录
+        if(origin_path.filename() == "bin"){
+            object = origin_path.parent_path() / "data";
+        }else{
+            object = origin_path / "data";
+        }
+        //如果现在是在bin的父目录下，就要先切换到data目录下
+        if(object!=origin_path){
+            std::filesystem::current_path(object);
+            switched = true;
+        }
+
+        //将data目录下的所有数据库名称加载到databases中
+        for(const auto& entry : std::filesystem::directory_iterator(object)){
+            if(entry.is_directory()){
+                databases.insert(entry.path().filename().string());
+            }
+        }
+
+    }
+    ~terminal(){
+        if(current_database){
+            //在终端退出时保存当前数据库的状态
+            //TODO
+        }
+        // 切换回原来的工作目录
+
+        if(switched){
+            std::filesystem::current_path(origin_path);
+        }
+    }
     bool find_command(const std::string& command);
     void run_command(const std::string& command);
 
@@ -60,6 +121,7 @@ class terminal{
                     << "insert into <table_name> values (<values>);\n"
                     << "update <table_name> set <column_name> = <value> [where <condition>];\n"
                     << "delete from <table_name> where <condition>;\n"
+                    << "close;\n"//关闭当前的数据库
                     << "exit;\n"
                     << "help;\n";
     }

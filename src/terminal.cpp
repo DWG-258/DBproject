@@ -89,9 +89,9 @@ void terminal::run_command(const std::string& command){
                     std::istringstream value_stream(value);
                     std::string _token;
                     while(std::getline(value_stream,_token,',')){
-                        if(is_int(_token)){
+                        if(is_int_(_token)){
                             values_row.push_back(std::stoi(_token));
-                        }else if(is_double(_token)){
+                        }else if(is_double_(_token)){
                             values_row.push_back(std::stod(_token));
                         }else{
                             auto quoted_value = in_quotation(_token);
@@ -102,6 +102,7 @@ void terminal::run_command(const std::string& command){
                                 return;
                             }
                         }
+                        insert_into_table(table_name, values_row);
 
                     }
                 }else{
@@ -142,9 +143,9 @@ void terminal::run_command(const std::string& command){
             std::string value_str;
             iss >> value_str;
             record value;
-            if(is_int(value_str)){
+            if(is_int_(value_str)){
                 value = std::stoi(value_str);
-            }else if(is_double(value_str)){
+            }else if(is_double_(value_str)){
                 value = std::stod(value_str);
             }else if(auto quoted_value = in_quotation(value_str);quoted_value!=std::nullopt){
                 value = *quoted_value;
@@ -179,3 +180,97 @@ void terminal::run_command(const std::string& command){
 void terminal::exit(){
     std::exit(0);
 }
+
+void terminal::create_db(const std::string& db_name,const std::string& password){
+    if(!db_test(db_name)){
+        return;
+    }
+    //在data目录下创建以数据库名命名的目录
+    std::filesystem::path db_path = std::filesystem::current_path() / db_name;
+    if(!std::filesystem::exists(db_path)){
+        if(std::filesystem::create_directory(db_path)){
+            databases.insert(db_name);
+            if(!password.empty()){
+                std::ofstream pass_file(db_path / "password.txt");
+                if(!pass_file){
+                    std::cerr <<"Error: Could not create password file for database "<< db_name << "."<<std::endl;
+                    return;
+                }
+                pass_file << password;
+            }
+            std::cout << "Database "<< db_name << " created successfully." << std::endl;
+
+        }else{
+            std::cerr << "Error: Could not create database directory." <<std::endl;
+            return;
+        }
+    }
+
+}
+
+void terminal::drop_db(const std::string& db_name){
+    //或许之后添加一个线程操作
+    if(!db_test(db_name)){
+        return;
+    }
+    std::filesystem::path db_path = std::filesystem::current_path() / db_name;
+    std::filesystem::path pass_path= db_path / "password.txt";
+    if(std::filesystem::exists(pass_path)){
+        std::cout<<"Please enter the password for database "<< db_name <<": "<<std::endl;
+        std::string input_password;
+        std::cin >> input_password;
+        std::ifstream pass_file(pass_path);
+        std::string stroed_password;
+        if(pass_file){
+            std::getline(pass_file,stroed_password);
+        }
+        if(input_password != stroed_password){
+            std::cerr << "Error: Incorrect password." << std::endl;
+            return;
+        }
+    }
+    if(std::filesystem::remove_all(db_path)){
+        databases.erase(db_name);
+        std::cout << "Database "<< db_name << " dropped successfully." << std::endl;
+    }else{
+        std::cerr << "Error: Could not drop database "<< db_name << "." << std::endl;
+    }
+
+}
+
+void terminal::use_db(const std::string& db_name){
+    if(!db_test(db_name)){
+        return;
+    }
+    std::filesystem::path db_path = std::filesystem::current_path() / db_name;
+    std::filesystem::path pass_path= db_path / "password.txt";
+    std::string input_password;
+    if(std::filesystem::exists(pass_path)){
+        std::cout<<"Please enter the password for database "<< db_name <<": "<<std::endl;
+        std::string input_password;
+        std::cin >> input_password;
+        std::ifstream pass_file(pass_path);
+        std::string stroed_password;
+        if(pass_file){
+            std::getline(pass_file,stroed_password);
+        }
+        if(input_password != stroed_password){
+            std::cerr << "Error: Incorrect password." << std::endl;
+            return;
+        }
+    }
+    current_db = db_name;
+    //具体的装入内存操作交给database类来处理
+    current_database = std::make_unique<database>(db_name,input_password);
+
+    std::cout << "Switched to database: " << db_name << std::endl;
+}
+
+void terminal::create_table(const std::string& table_name,const std::string& column_definitions){}
+void terminal::drop_table(const std::string& table_name){}
+void terminal::insert_into_table(const std::string& table_name,const row& values){}
+void terminal::select_from_table(const std::string& table_name,const std::vector<std::string>& column_names,
+                                 const std::string& condition){}
+void terminal::update_table(const std::string& table_name,const std::string& column_name,
+                           const record& value, const std::string& condition){}
+void terminal::delete_from_table(const std::string& table_name, const std::string& condition){}
