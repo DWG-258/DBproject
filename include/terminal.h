@@ -23,14 +23,15 @@ class terminal{
     std::string current_db;//当前使用的数据库名称
     std::set<std::string> databases;//存储所有数据库的名称
     std::filesystem::path origin_path;
+    std::filesystem::path data_path;
     bool switched=false;
     std::set<std::string> keywords = {
-        "create", "drop", "use", "insert", "select", "update", "delete",
+        "create", "drop", "use", "insert", "select", "update", "delete","close",
           "exit", "help","database","table","where","into","values","int","double","string","primary key",
     };
     std::set<std::string> command_prefixes = {
         "create database", "drop database", "use","create table",
-        "drop table", "select","delete", "insert into","update","help","exit"
+        "drop table", "select","delete", "insert into","update","help","exit","close"
     };
     std::unique_ptr<database> current_database;//当前使用的数据库指针
     std::string current_command;
@@ -53,7 +54,8 @@ class terminal{
             std::filesystem::current_path(object);
             switched = true;
         }
-
+        data_path = object;
+        
         //将data目录下的所有数据库名称加载到databases中
         for(const auto& entry : std::filesystem::directory_iterator(object)){
             if(entry.is_directory()){
@@ -66,6 +68,7 @@ class terminal{
         if(current_database){
             //在终端退出时保存当前数据库的状态
             //TODO
+            current_database->save_tables();
         }
         // 切换回原来的工作目录
 

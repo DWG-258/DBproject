@@ -35,6 +35,9 @@ void terminal::run_command(const std::string& command){
             exit();
         }else if(current_command=="help"){
             help();
+        }else if(current_command=="close"){
+            close_db();
+            return;
         }
         std::istringstream iss(current_command);
         std::string token;
@@ -185,6 +188,9 @@ void terminal::run_command(const std::string& command){
     }
 }
 void terminal::exit(){
+    if(current_database){
+        close_db(); //确保在退出前关闭当前数据库
+    }
     std::exit(0);
 }
 
@@ -427,11 +433,23 @@ void terminal::drop_table(const std::string& table_name){
         std::cerr << "Error: Table " << table_name << " does not exist." << std::endl;
         return;
     }
-    
+
 
 }
 
+void terminal::close_db(){
+    if(!current_database){
+        std::cerr << "Error: No database is currently in use." << std::endl;
+        return;
+    }
+    current_database->save_tables(); //保存当前数据库的状态
+    current_database.reset();
+    current_db = "";
+    prompt = "dblite> "; //重置提示符
+    std::cout << "Database closed successfully." << std::endl;
 
+    std::filesystem::current_path(data_path); //切换回data目录
+}
 
 
 void terminal::insert_into_table(const std::string& table_name,const row& values){}

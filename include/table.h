@@ -4,6 +4,7 @@
 #include <vector>
 #include <filesystem>
 #include <fstream>
+#include <map>
 #include "type.h"
 #pragma once
 
@@ -17,12 +18,13 @@ class table{
     using row = std::vector<record>;
     using table_data = std::set<row>;
     private:
+    friend class database;
     std::string table_name;
     table_data data;
     std::vector<std::string> column_names;
-    int primary_key_index = -1;
-    std::map<record,row> primary_key_index;
+    std::map<record,row> primary_key_index_map;
     std::vector<type> column_types;
+    int primary_key_index = -1;
     public:
     //这个构造函数是从文件中读取表数据
     table(const std::string& name, std::filesystem::path file_path)

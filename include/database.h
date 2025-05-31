@@ -27,4 +27,5 @@ class database {
             }
         }
         }
+    void save_tables() const;
 };
