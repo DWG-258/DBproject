@@ -33,10 +33,15 @@ void terminal::run_command(const std::string& command){
         current_command = command.substr(0,command.size()-1);//移除末尾的分号
         if(current_command=="exit"){
             exit();
+            return;
         }else if(current_command=="help"){
             help();
+            return;
         }else if(current_command=="close"){
             close_db();
+            return;
+        }else if(current_command=="ls"){
+            ls_table();
             return;
         }
         std::istringstream iss(current_command);
@@ -450,7 +455,16 @@ void terminal::close_db(){
 
     std::filesystem::current_path(data_path); //切换回data目录
 }
-
+void terminal::ls_table(){
+    if(!current_database){
+        std::cerr << "Error: No database is currently in use." << std::endl;
+        return;
+    }
+    std::cout << "Tables in database " << current_db << ":" << std::endl;
+    for(const auto& [table_name, table_ptr] : current_database->tables){
+        std::cout << "- " << table_name << std::endl;
+    }
+}
 
 void terminal::insert_into_table(const std::string& table_name,const row& values){}
 void terminal::select_from_table(const std::string& table_name,const std::vector<std::string>& column_names,

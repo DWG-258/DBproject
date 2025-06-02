@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <fstream>
 #include <map>
+#include <memory>
 #include "type.h"
 #pragma once
 
@@ -16,13 +17,13 @@ class table{
     public:
     using record = std::variant<int,double,std::string>;
     using row = std::vector<record>;
-    using table_data = std::set<row>;
+    using table_data = std::set<std::unique_ptr<row>>;
     private:
     friend class database;
     std::string table_name;
     table_data data;
     std::vector<std::string> column_names;
-    std::map<record,row> primary_key_index_map;
+    std::map<record,row*> primary_key_index_map;
     std::vector<type> column_types;
     int primary_key_index = -1;
     public:

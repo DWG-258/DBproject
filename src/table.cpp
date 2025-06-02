@@ -31,21 +31,30 @@ void table::read_from_file(const std::filesystem::path& file_path) {
             }
         }
     }
+    if(std::getline(file,line)){
+        primary_key_index = std::stoi(line);
+    }
     while(std::getline(file,line)){
+        if(line.empty()) continue;
         std::istringstream iss(line);
-        row new_row;
+        auto new_row = std::make_unique<row>();
         std::string value;
         int index = 0;
         while(iss >> value){
             if(value == " ")continue; //跳过空格
             if(column_types[index] == type::INT){
-                new_row.push_back(std::stoi(value));
+                new_row->push_back(std::stoi(value));
             }else if(column_types[index] == type::DOUBLE){
-                new_row.push_back(std::stod(value));
+                new_row->push_back(std::stod(value));
             }else if(column_types[index] == type::STRING){
-                new_row.push_back(value);
+                new_row->push_back(value);
             }
             index++;
+        }
+        data.insert(std::move(new_row));
+        //主鍵索引不擁有row
+        if(primary_key_index != -1){
+            primary_key_index_map[(*new_row)[primary_key_index]] = new_row.get();
         }
     }
     file.close();
@@ -76,7 +85,7 @@ void table::write_to_file(const std::filesystem::path& file_path) const {
     file << primary_key_index << std::endl;
     //写入数据
     for(const auto& row : data){
-        for(const auto& record : row){
+        for(const auto& record : *row){
             std::visit([&file](auto&& arg){
                 file << arg << " ";
             },record);

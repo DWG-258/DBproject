@@ -26,12 +26,12 @@ class terminal{
     std::filesystem::path data_path;
     bool switched=false;
     std::set<std::string> keywords = {
-        "create", "drop", "use", "insert", "select", "update", "delete","close",
+        "create", "drop", "use", "insert", "select", "update", "delete","close","ls",
           "exit", "help","database","table","where","into","values","int","double","string","primary key",
     };
     std::set<std::string> command_prefixes = {
         "create database", "drop database", "use","create table",
-        "drop table", "select","delete", "insert into","update","help","exit","close"
+        "drop table", "select","delete", "insert into","update","help","exit","close","ls"
     };
     std::unique_ptr<database> current_database;//当前使用的数据库指针
     std::string current_command;
@@ -96,6 +96,7 @@ class terminal{
     void delete_from_table(const std::string& table_name, const std::string& condition = "");
     void exit();
     void close_db();
+    void ls_table();
     std::string get_prompt() const {
         return prompt;
     }
