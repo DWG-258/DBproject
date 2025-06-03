@@ -88,10 +88,38 @@ void table::write_to_file(const std::filesystem::path& file_path) const {
         for(const auto& record : *row){
             std::visit([&file](auto&& arg){
                 file << arg << " ";
+                std::cout << arg << " ";
             },record);
         }
         file << std::endl;
     }
     file.close();
     
+}
+
+void table::insert_row(const row& new_row,std::filesystem::path file_path)
+{
+    
+    //首先检查是否重复
+    if(primary_key_index != -1){
+        std::cerr << "Error: Duplicate entry for primary key"<<std::endl;
+        return;
+    }
+    //在数据结构中插入
+    std::unique_ptr<row> new_row_ptr = std::make_unique<row>(new_row);
+    data.insert(std::move(new_row_ptr));
+    std::cout << "suuccess insert" << std::endl;
+    //保存到文件
+    write_to_file(file_path);
+    std::cout << "suuccess insert to file" << std::endl;
+}
+
+void table::update_row(const row& old_row, const row& new_row)
+{
+
+}
+
+void table::delete_row(const row& target_row)
+{
+
 }

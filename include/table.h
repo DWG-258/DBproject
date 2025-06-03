@@ -7,6 +7,7 @@
 #include <map>
 #include <memory>
 #include "type.h"
+#include <iostream>
 #pragma once
 
 
@@ -42,7 +43,20 @@ class table{
     void rename(const std::string& new_name);
     void add_column(const std::string& column_name, type column_type);
     void remove_column(const std::string& column_name);
-    void insert_row(const row& new_row);
+    void insert_row(const row& new_row,std::filesystem::path file_path);
     void delete_row(const row& target_row);
     void update_row(const row& old_row, const row& new_row);
+
+    //new 6.2
+
+    std::vector<std::string> get_column_names() const
+    {
+        return column_names;
+    }
+    std::vector<type> get_column_types() const
+    {
+        return column_types;
+
+    }
+
 };

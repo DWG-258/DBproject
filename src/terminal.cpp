@@ -1,5 +1,6 @@
 #include"terminal.h"
 #include"helper.h"
+#include <utility>
 bool terminal::find_command(const std::string& command){
     if(command.substr(command.size()-1)!=";"){
         std::cerr << "Error: Command must end with a semicolon." << std::endl;
@@ -104,22 +105,28 @@ void terminal::run_command(const std::string& command){
                     std::istringstream value_stream(value);
                     std::string _token;
                     while(std::getline(value_stream,_token,',')){
-                        if(is_int_(_token)){
-                            values_row.push_back(std::stoi(_token));
-                        }else if(is_double_(_token)){
+                        
+                        if(is_double_(_token)){
                             values_row.push_back(std::stod(_token));
+                            std::cout << "Quoted value: " << _token << std::endl;
+                        
+                        }else if(is_int_(_token)){
+                            values_row.push_back(std::stoi(_token));
                         }else{
                             auto quoted_value = in_quotation(_token);
                             if(quoted_value!= std::nullopt){
                                 values_row.push_back(*quoted_value);
+                                std::cout << "Quoted value: " << *quoted_value << std::endl;
                             }else{
                                 std::cerr << "Error: Invalid value type."<<std::endl;
                                 return;
                             }
                         }
-                        insert_into_table(table_name, values_row);
+                
 
                     }
+                    insert_into_table(table_name, values_row);
+                    return;
                 }else{
                     std::cerr << "Error: Invalid command syntax."<<std::endl;
                     return;
@@ -466,7 +473,62 @@ void terminal::ls_table(){
     }
 }
 
-void terminal::insert_into_table(const std::string& table_name,const row& values){}
+
+
+
+
+
+
+
+
+//new 6.2
+//通过文件查找数据库中查找表
+std::pair<bool,std::filesystem::path> find_table_infile(const std::string& table_name,const std::string& db_name){
+    std::string table_name_with_path = table_name+".tbl";
+    std::filesystem::path table_path = std::filesystem::current_path()/table_name_with_path ;
+    if(std::filesystem::exists(table_path)){
+       
+        return {true,table_path};
+    }
+    else{
+        
+        return {false,table_path};
+    }
+}
+
+
+
+void terminal::insert_into_table(const std::string& table_name,const row& values){
+     std::string db_name = current_db;
+     //在文件中查找表
+     std::pair<bool,std::filesystem::path> find_result = find_table_infile(table_name,db_name);
+     if(!(find_result.first))
+     {
+        
+        std::cerr << "Table "<< table_name << " not found in systemfile of "<< find_result.second << "." << std::endl;
+        return;
+     }
+
+     //通过数据结构的数据库查找表
+     std::shared_ptr<table> cur_table = current_database->get_table(table_name);
+     if(cur_table==nullptr){
+        std::cerr << "Table "<< table_name << " not found in database "<< db_name << "." << std::endl;
+        return;
+     }
+     else
+     {
+        //插入数据
+        int column_count = 0;
+        if(values.size()!=cur_table->get_column_names().size())
+        {
+            std::cerr << "The number of values"<< values.size()<< "does not match the number of columns."<< cur_table->get_column_names().size()<< std::endl;
+            return;
+        }
+        //进入表的层面添加数据，传入数据和了文件路径
+        current_database->get_table(table_name)->insert_row(values,find_result.second);
+     }
+     
+}
 void terminal::select_from_table(const std::string& table_name,const std::vector<std::string>& column_names,
                                  const std::string& condition){}
 void terminal::update_table(const std::string& table_name,const std::string& column_name,
