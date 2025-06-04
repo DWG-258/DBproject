@@ -99,19 +99,31 @@ void table::write_to_file(const std::filesystem::path& file_path) const {
 
 void table::insert_row(const row& new_row,std::filesystem::path file_path)
 {
-    
-    //首先检查是否重复
-    if(primary_key_index != -1){
-        std::cerr << "Error: Duplicate entry for primary key"<<std::endl;
-        return;
-    }
-    //在数据结构中插入
     std::unique_ptr<row> new_row_ptr = std::make_unique<row>(new_row);
+    //获取主键在行中的具体数据
+    auto primary_key_data = (*new_row_ptr)[primary_key_index];
+    //首先检查是否有主建,无将则可以重复
+    if(primary_key_index == -1){
+        data.insert(std::move(new_row_ptr));
+    }
+   else{
+    //如果有重复主建，则报错
+    for(auto & record:primary_key_index_map)
+    {
+        if(record.first == primary_key_data)
+        {
+            std::cerr << "primary key data already exists" << std::endl;
+            return;
+        }
+    }
+    //没有则插入，更新map
     data.insert(std::move(new_row_ptr));
-    std::cout << "suuccess insert" << std::endl;
-    //保存到文件
-    write_to_file(file_path);
-    std::cout << "suuccess insert to file" << std::endl;
+    primary_key_index_map[primary_key_data] = new_row_ptr.get();
+   }
+    std::cout << "suuccessfully insert" << std::endl;
+    //先不保存
+    // write_to_file(file_path);
+    // std::cout << "suuccess insert to file" << std::endl;
 }
 
 void table::update_row(const row& old_row, const row& new_row)
