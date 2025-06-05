@@ -135,22 +135,33 @@ void terminal::run_command(const std::string& command){
         }else if(token == "select"){
             std::vector<std::string> column_names;
             std::string table_name;
+            bool where_exist = false;
+            std::string condition;
             while(iss>>token){
                 if(token == "from"){
                     iss >> table_name;
+                    
                 }else if(token == "where"){
-                    std::string condition;
+                    
                     while(iss >> token){
                         condition +=token + " ";
                     }
                     condition = condition.substr(0,condition.size()-1);//移除末尾的空格
                     select_from_table(table_name, column_names, condition);
-                }else{
+                    where_exist = true;
+                }else if(token == "*"){
+                    //选取所有列
+                    column_names.push_back("*");
+                }
+                else{
                     if(token !=","){
                         column_names.push_back(token);
                     }
-
                 }
+            }
+            //如果无条件
+            if(!where_exist){
+                select_from_table(table_name, column_names,condition);
             }
         }else if(token == "update"){
             std::string table_name;
@@ -314,6 +325,7 @@ void terminal::use_db(const std::string& db_name){
     current_db = db_name;
     //具体的装入内存操作交给database类来处理
     current_database = std::make_unique<database>(db_name,input_password);
+    std::cout << "Using database: " << db_name << std::endl;
     //将当前目录切换到数据库目录下
     std::filesystem::current_path(db_path);
     //更新提示符
@@ -499,7 +511,7 @@ std::pair<bool,std::filesystem::path> find_table_infile(const std::string& table
 
 
 void terminal::insert_into_table(const std::string& table_name,const row& values){
-     std::string db_name = current_db;
+     std::string& db_name = current_db;
      //在文件中查找表
      std::pair<bool,std::filesystem::path> find_result = find_table_infile(table_name,db_name);
      if(!(find_result.first))
@@ -518,7 +530,7 @@ void terminal::insert_into_table(const std::string& table_name,const row& values
      else
      {
         //插入数据
-        int column_count = 0;
+    
         if(values.size()!=cur_table->get_column_names().size())
         {
             std::cerr << "The number of values"<< values.size()<< "does not match the number of columns."<< cur_table->get_column_names().size()<< std::endl;
@@ -529,8 +541,84 @@ void terminal::insert_into_table(const std::string& table_name,const row& values
      }
      
 }
+
+//TO DO
 void terminal::select_from_table(const std::string& table_name,const std::vector<std::string>& column_names,
-                                 const std::string& condition){}
+                                 const std::string& condition)
+
+            {
+            
+    
+            
+
+            //获取要查询的表
+            auto cur_table = current_database->get_table(table_name);
+         
+            //无条件，则查找全表
+            if(condition.empty())
+            {
+                std::cout << "\033[34mSelecting all rows from table \033[0m" << table_name << "..." << std::endl;
+                
+                
+                {
+                    std::cerr << "Error: No database is currently in use." << std::endl;
+                    return;
+                }
+                if(cur_table.get()==nullptr)
+                {
+                    std::cerr << "Table "<< table_name << " not found in database "<< current_db << "." << std::endl;
+                    return;
+
+                }
+                cur_table->select_all();
+            }
+            else{
+                //有条件，则查找满足条件的数据
+                //先解析条件
+                std::vector<std::string> condition_parts;
+               condition_parts = split_by_space(condition);
+               if(condition_parts.size()!=3)
+               {
+                   std::cerr << "\033[31mError: Invalid condition.\033[0m" << std::endl;
+                   return;
+               }
+               //获取列索引
+               int coulmn_index=cur_table->get_column_index(condition_parts[0]);
+               auto [condition_type,condition_value] = get_type(condition_parts[2]);
+                //判断列类型和条件类型是否相等
+               if(cur_table->get_column_types()[coulmn_index]!=condition_type)
+               {
+                std::cout<<type_to_string(cur_table->get_column_types()[coulmn_index])<<type_to_string(condition_type)<<std::endl;
+                std::cerr << "\033[31mError: wrong type in condition.\033[0m" << std::endl;
+                return;
+               }
+
+     
+
+                std::cout << "Selecting rows from table " << table_name << " where " << condition << "..." << std::endl;
+                // 目前在只支持一个的列名
+                cur_table->select_column(column_names,condition_parts);
+                return;
+            }
+            }
 void terminal::update_table(const std::string& table_name,const std::string& column_name,
-                           const record& value, const std::string& condition){}
-void terminal::delete_from_table(const std::string& table_name, const std::string& condition){}
+                           const record& value, const std::string& condition){
+
+                           }
+void terminal::delete_from_table(const std::string& table_name, const std::string& condition){
+    std::string& db_name = current_db;
+    std::pair<bool,std::filesystem::path> find_result = find_table_infile(table_name,db_name);
+    if(!(find_result.first))
+    {
+        std::cerr << "Table "<< table_name << " not found in systemfile of "<< find_result.second << "." << std::endl;
+        return;
+    }
+    std::shared_ptr<table> cur_table = current_database->get_table(table_name);
+    if(cur_table==nullptr){
+        std::cerr << "Table "<< table_name << " not found in database "<< db_name << "." << std::endl;
+        return;
+    }
+    else{
+        
+    }
+}

@@ -14,6 +14,7 @@
 #include <algorithm>
 #include"database.h"
 #include"helper.h"
+
 class terminal{
     using record = std::variant<int,double,std::string>;
     using row= std::vector<record>;

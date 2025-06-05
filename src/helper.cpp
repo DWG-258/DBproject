@@ -29,3 +29,41 @@ std::optional<std::string> in_quotation(const std::string& str){
     }
     return std::nullopt;
 }
+
+std::vector<std::string> split_by_space(const std::string& str)
+{
+    std::vector<std::string> result;
+    std::istringstream iss(str);
+    std::string word;
+
+    while (iss >> word) {  // 自动跳过连续空格
+        result.push_back(word);
+    }
+
+    return result;
+}
+
+std::pair<type,value> get_type(const std::string& str)
+{
+     if(str.find('.') != std::string::npos)
+     {
+         return {type::DOUBLE,std::stod(str)};
+     }
+     else if(is_int_(str))
+     {
+         return {type::INT,std::stoi(str)};
+     }
+     else{
+        return {type::STRING,str};
+     }
+     
+}
+
+std::string type_to_string(type type) {
+    switch (type) {
+        case type::INT:    return "Int";
+        case type::DOUBLE: return "Double";
+        case type::STRING: return "String";
+        default:                return "Unknown";
+    }
+}

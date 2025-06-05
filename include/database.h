@@ -22,8 +22,11 @@ class database {
         for(const auto& entry : std::filesystem::directory_iterator(db_path)){
             if(entry.is_regular_file() && entry.path().extension() == ".tbl"){
                 std::string table_name = entry.path().stem().string();//获取表名
+               
+              
                 auto new_table = std::make_shared<table>(table_name,entry.path());
                 tables[table_name] = new_table;
+               
             }
         }
         }

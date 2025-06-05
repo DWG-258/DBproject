@@ -8,6 +8,7 @@
 #include <memory>
 #include "type.h"
 #include <iostream>
+#include "helper.h"
 #pragma once
 
 
@@ -26,6 +27,7 @@ class table{
     std::vector<std::string> column_names;
     std::map<record,row*> primary_key_index_map;
     std::vector<type> column_types;
+    std::map<std::string,type> column_type_map;
     int primary_key_index = -1;
     public:
     //这个构造函数是从文件中读取表数据
@@ -46,6 +48,8 @@ class table{
     void insert_row(const row& new_row,std::filesystem::path file_path);
     void delete_row(const row& target_row);
     void update_row(const row& old_row, const row& new_row);
+    void select_all();
+    void select_column(const std::vector<std::string>& column_names,const std::vector<std::string>& condition);
 
     //new 6.2
 
@@ -59,4 +63,17 @@ class table{
 
     }
 
+    int get_column_index(const std::string& column_name) const
+    {
+        for(std::size_t i = 0; i < column_names.size(); i++)
+        {
+            if(column_names[i] == column_name)
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+ 
 };

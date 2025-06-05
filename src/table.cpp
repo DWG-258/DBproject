@@ -31,12 +31,15 @@ void table::read_from_file(const std::filesystem::path& file_path) {
             }
         }
     }
+   
     if(std::getline(file,line)){
         primary_key_index = std::stoi(line);
     }
+
     while(std::getline(file,line)){
         if(line.empty()) continue;
         std::istringstream iss(line);
+       
         auto new_row = std::make_unique<row>();
         std::string value;
         int index = 0;
@@ -51,11 +54,20 @@ void table::read_from_file(const std::filesystem::path& file_path) {
             }
             index++;
         }
-        data.insert(std::move(new_row));
+        
+
         //主鍵索引不擁有row
         if(primary_key_index != -1){
+            if (!new_row ) {
+                // 处理错误
+                std::cout << "Error: Invalid row data in file: " << file_path.string() << std::endl;
+                return;
+            }
             primary_key_index_map[(*new_row)[primary_key_index]] = new_row.get();
+
         }
+        data.insert(std::move(new_row));
+      
     }
     file.close();
 }
@@ -105,6 +117,7 @@ void table::insert_row(const row& new_row,std::filesystem::path file_path)
     //首先检查是否有主建,无将则可以重复
     if(primary_key_index == -1){
         data.insert(std::move(new_row_ptr));
+        return;
     }
    else{
     //如果有重复主建，则报错
@@ -133,5 +146,63 @@ void table::update_row(const row& old_row, const row& new_row)
 
 void table::delete_row(const row& target_row)
 {
+    
+    for(auto& row : data){
+        if(*row == target_row){
+            data.erase(row);
+            primary_key_index_map.erase((*row)[primary_key_index]);
+            std::cout <<"successfully delete" << std::endl;
+            break;
+        }
+    }
 
+
+}
+
+void table::select_all()
+{
+    for(auto& c:column_names)
+    {
+        std::cout << c << " ";
+    }
+    std::cout <<std::endl;
+    for(auto& row : data){
+        if(!row) continue;
+       
+        for(auto& record : *row){
+            std::visit([](auto&& arg){
+                std::cout << arg << " ";
+            },record);
+        }
+        std::cout <<std::endl;
+    }
+}
+
+void table::select_column(const std::vector<std::string>& column_names,const std::vector<std::string>& condition)
+{
+   
+    for(auto& column_name : column_names)
+    {
+        std::cout << column_name << " ";
+    }
+    std::cout <<std::endl;
+   auto [condition_type,condition_value]= get_type(condition[2]);
+    if(condition[1]=="=")
+    {
+        for(auto& row : data){
+            if(!row) continue;
+           if((*row)[get_column_index(condition[0])]==condition_value)
+           {
+                for(auto& record : *row){
+                    std::visit([](auto&& arg){
+                        std::cout << arg << " ";
+                    },record);
+                }
+           }
+           
+            std::cout <<std::endl;
+        }
+
+    }
+  
 }
