@@ -50,9 +50,10 @@ class table{
     void update_row(const row& old_row, const row& new_row);
     void select_all();
     void select_column(const std::vector<std::string>& column_names,const std::vector<std::string>& condition);
-
-    //new 6.2
-
+    void print_row_in_condition(const std::vector<std::string>& column_names,const std::vector<std::string>& condition);
+    void print_row_without_condition(const std::vector<std::string>& column_names);
+    template<typename variable_type>
+    void print_record(const variable_type& v);
     std::vector<std::string> get_column_names() const
     {
         return column_names;
@@ -65,6 +66,11 @@ class table{
 
     int get_column_index(const std::string& column_name) const
     {
+        //如果是*则返回-1
+        if(column_name=="*")
+        {
+            return -1;
+        }
         for(std::size_t i = 0; i < column_names.size(); i++)
         {
             if(column_names[i] == column_name)
@@ -72,7 +78,8 @@ class table{
                 return i;
             }
         }
-        return -1;
+        //都不是则返回-2
+        return -2;
     }
 
  

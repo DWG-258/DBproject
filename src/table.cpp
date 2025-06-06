@@ -170,39 +170,185 @@ void table::select_all()
         if(!row) continue;
        
         for(auto& record : *row){
-            std::visit([](auto&& arg){
-                std::cout << arg << " ";
-            },record);
+          print_record(record);
         }
         std::cout <<std::endl;
     }
 }
 
-void table::select_column(const std::vector<std::string>& column_names,const std::vector<std::string>& condition)
+enum class condition_type{
+    equal,
+    greater,
+    smaller
+};
+
+//打印数据,模板函数
+template<typename variable_type>
+void table::print_record(const variable_type& v)
 {
-   
-    for(auto& column_name : column_names)
+    std::visit([](auto&& arg){
+        std::cout << arg << " ";
+    },v);
+}
+
+
+void table::print_row_without_condition(const std::vector<std::string>& column_names)
+{  
+     for(auto& column_name : column_names)
     {
         std::cout << column_name << " ";
     }
     std::cout <<std::endl;
+    int column_index = get_column_index(column_names[0]);
+     for(auto& row : data){
+            if(!row) continue;
+            if(column_index==-1)
+            {
+                //其打印全部列
+                    for(auto& record : *row){
+                       print_record(record);
+                    }           
+            }
+            else{
+                //打印选中列
+               print_record((*row)[column_index]);
+            }
+            std::cout <<std::endl;   
+            
+           
+        }
+}
+void table::print_row_in_condition(const std::vector<std::string>& column_names,const std::vector<std::string>& condition)
+{ 
+    int column_index = get_column_index(column_names[0]);
+    if(column_index == -1)
+    {
+          for(auto& column_name : table::column_names)
+            {
+                std::cout << column_name << " ";
+            }
+            std::cout <<std::endl;
+        
+    }
+    else
+    {
+        for(auto& column_name : column_names)
+        {
+            std::cout << column_name << " ";
+        }
+        std::cout <<std::endl;
+  
+    }
+
+
+   int column_index_inCondintion = get_column_index(condition[0]);
    auto [condition_type,condition_value]= get_type(condition[2]);
+ 
     if(condition[1]=="=")
     {
+       
         for(auto& row : data){
             if(!row) continue;
-           if((*row)[get_column_index(condition[0])]==condition_value)
+           if((*row)[column_index_inCondintion]==condition_value)
            {
-                for(auto& record : *row){
-                    std::visit([](auto&& arg){
-                        std::cout << arg << " ";
-                    },record);
-                }
-           }
+            if(column_index==-1)
+            {
+                
+                //其打印全部列
+                    for(auto& record : *row){
+                       print_record(record);
+                    }           
+            }
+            else{
+                //打印选中列
+               print_record((*row)[column_index]);
+            }
+            std::cout <<std::endl;   
+            }
            
-            std::cout <<std::endl;
         }
 
     }
-  
+    else if(condition[1]=="<")
+    {
+        for(auto& row : data){
+            if(!row) continue;
+           if((*row)[column_index_inCondintion]<condition_value)
+           {
+            if(column_index==-1)
+            {
+                //其打印全部列
+                    for(auto& record : *row){
+                        std::visit([](auto&& arg){
+                            std::cout << arg << " ";
+                        },record);
+                    }           
+            }
+            else{
+                //打印选中列
+               std::visit([](auto&& arg){
+                            std::cout << arg << " ";
+                        },(*row)[column_index]);
+            }
+            std::cout <<std::endl;
+            }
+        }
+    }
+    else if(condition[1]==">")
+    {
+        for(auto& row : data){
+            if(!row) continue;
+           if((*row)[column_index_inCondintion]>condition_value)
+           {
+                if(column_index==-1)
+            {
+                //其打印全部列
+                    for(auto& record : *row){
+                        std::visit([](auto&& arg){
+                            std::cout << arg << " ";
+                        },record);
+                    }           
+            }
+            else{
+                //打印选中列
+               std::visit([](auto&& arg){
+                            std::cout << arg << " ";
+                        },(*row)[column_index]);
+            }
+            std::cout <<std::endl;
+           }
+        }
+    }
+    
+   
 }
+void table::select_column(const std::vector<std::string>& column_names,const std::vector<std::string>& condition)
+{
+
+    //第一选择其全选列,第二选择是非全选列
+    if(column_names[0]=="*")
+    {
+        //全选列无条件
+        if(condition.size()==0)
+            select_all();
+        else
+        {
+            //全选列有条件
+            print_row_in_condition(column_names,condition);
+        }
+    }
+    else
+    {
+        //非全选列无条件
+      if(condition.size()==0)
+      {
+          print_row_without_condition(column_names);
+      }
+      else{
+        //非全选列有条件
+         print_row_in_condition(column_names,condition);
+      }
+     }
+ }
+   
+  

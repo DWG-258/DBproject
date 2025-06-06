@@ -547,7 +547,8 @@ void terminal::select_from_table(const std::string& table_name,const std::vector
                                  const std::string& condition)
 
             {
-            
+            //获取条件
+            std::vector<std::string> condition_parts;
     
             
 
@@ -559,7 +560,7 @@ void terminal::select_from_table(const std::string& table_name,const std::vector
             {
                 std::cout << "\033[34mSelecting all rows from table \033[0m" << table_name << "..." << std::endl;
                 
-                
+                if(!current_database)
                 {
                     std::cerr << "Error: No database is currently in use." << std::endl;
                     return;
@@ -570,12 +571,15 @@ void terminal::select_from_table(const std::string& table_name,const std::vector
                     return;
 
                 }
-                cur_table->select_all();
+            
+                 cur_table->select_column(column_names,condition_parts);
+                
+                
             }
             else{
                 //有条件，则查找满足条件的数据
                 //先解析条件
-                std::vector<std::string> condition_parts;
+              
                condition_parts = split_by_space(condition);
                if(condition_parts.size()!=3)
                {
@@ -597,6 +601,7 @@ void terminal::select_from_table(const std::string& table_name,const std::vector
 
                 std::cout << "Selecting rows from table " << table_name << " where " << condition << "..." << std::endl;
                 // 目前在只支持一个的列名
+              
                 cur_table->select_column(column_names,condition_parts);
                 return;
             }
