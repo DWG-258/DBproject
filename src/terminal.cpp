@@ -549,9 +549,6 @@ void terminal::select_from_table(const std::string& table_name,const std::vector
             {
             //获取条件
             std::vector<std::string> condition_parts;
-    
-            
-
             //获取要查询的表
             auto cur_table = current_database->get_table(table_name);
          
@@ -597,8 +594,6 @@ void terminal::select_from_table(const std::string& table_name,const std::vector
                 return;
                }
 
-     
-
                 std::cout << "Selecting rows from table " << table_name << " where " << condition << "..." << std::endl;
                 // 目前在只支持一个的列名
               
@@ -611,19 +606,56 @@ void terminal::update_table(const std::string& table_name,const std::string& col
 
                            }
 void terminal::delete_from_table(const std::string& table_name, const std::string& condition){
-    std::string& db_name = current_db;
-    std::pair<bool,std::filesystem::path> find_result = find_table_infile(table_name,db_name);
-    if(!(find_result.first))
-    {
-        std::cerr << "Table "<< table_name << " not found in systemfile of "<< find_result.second << "." << std::endl;
-        return;
-    }
-    std::shared_ptr<table> cur_table = current_database->get_table(table_name);
-    if(cur_table==nullptr){
-        std::cerr << "Table "<< table_name << " not found in database "<< db_name << "." << std::endl;
-        return;
-    }
-    else{
-        
-    }
+    //获取条件
+            std::vector<std::string> condition_parts;
+            //获取要查询的表
+            auto cur_table = current_database->get_table(table_name);
+         
+            //无条件，则是删除全表
+            if(condition.empty())
+            {
+                std::cout << "\033[34mSelecting all rows from table \033[0m" << table_name << "..." << std::endl;
+                
+                if(!current_database)
+                {
+                    std::cerr << "Error: No database is currently in use." << std::endl;
+                    return;
+                }
+                if(cur_table.get()==nullptr)
+                {
+                    std::cerr << "Table "<< table_name << " not found in database "<< current_db << "." << std::endl;
+                    return;
+
+                }
+            
+                 cur_table->delete_all();
+                
+                
+            }
+            else{
+                //有条件，则删除满足条件的数据
+                //先解析条件
+              
+               condition_parts = split_by_space(condition);
+               if(condition_parts.size()!=3)
+               {
+                   std::cerr << "\033[31mError: Invalid condition.\033[0m" << std::endl;
+                   return;
+               }
+               //获取列索引
+               int coulmn_index=cur_table->get_column_index(condition_parts[0]);
+               auto [condition_type,condition_value] = get_type(condition_parts[2]);
+                //判断列类型和条件类型是否相等
+               if(cur_table->get_column_types()[coulmn_index]!=condition_type)
+               {
+                std::cout<<type_to_string(cur_table->get_column_types()[coulmn_index])<<type_to_string(condition_type)<<std::endl;
+                std::cerr << "\033[31mError: wrong type in condition.\033[0m" << std::endl;
+                return;
+               }
+
+                std::cout << "Deleting rows from table " << table_name << " where " << condition << "..." << std::endl;
+              
+                cur_table->delete_row(condition_parts);
+                return;
+            }
 }

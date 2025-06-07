@@ -129,7 +129,7 @@ void table::insert_row(const row& new_row,std::filesystem::path file_path)
             return;
         }
     }
-    //没有则插入，更新map
+    //没有则插入，更新map索引
     data.insert(std::move(new_row_ptr));
     primary_key_index_map[primary_key_data] = new_row_ptr.get();
    }
@@ -144,16 +144,28 @@ void table::update_row(const row& old_row, const row& new_row)
 
 }
 
-void table::delete_row(const row& target_row)
+
+void table::delete_all()
 {
-    
-    for(auto& row : data){
-        if(*row == target_row){
-            data.erase(row);
-            primary_key_index_map.erase((*row)[primary_key_index]);
+    data.clear();
+}
+void table::delete_row(const std::vector<std::string>& condition)
+{
+   int column_index_inCondintion = get_column_index(condition[0]);
+   auto [condition_type,condition_value]= get_type(condition[2]);
+ 
+
+    for(auto it=data.begin();it!=data.end();it++){
+ 
+        auto row=*(*it);
+  
+        if(row[column_index_inCondintion]==condition_value){
+            data.erase(*it);
+            primary_key_index_map.erase((row)[primary_key_index]);
             std::cout <<"successfully delete" << std::endl;
             break;
         }
+
     }
 
 
@@ -279,16 +291,12 @@ void table::print_row_in_condition(const std::vector<std::string>& column_names,
             {
                 //其打印全部列
                     for(auto& record : *row){
-                        std::visit([](auto&& arg){
-                            std::cout << arg << " ";
-                        },record);
+                     print_record(record);
                     }           
             }
             else{
                 //打印选中列
-               std::visit([](auto&& arg){
-                            std::cout << arg << " ";
-                        },(*row)[column_index]);
+              print_record((*row)[column_index]);
             }
             std::cout <<std::endl;
             }
@@ -304,16 +312,12 @@ void table::print_row_in_condition(const std::vector<std::string>& column_names,
             {
                 //其打印全部列
                     for(auto& record : *row){
-                        std::visit([](auto&& arg){
-                            std::cout << arg << " ";
-                        },record);
+                       print_record(record);
                     }           
             }
             else{
                 //打印选中列
-               std::visit([](auto&& arg){
-                            std::cout << arg << " ";
-                        },(*row)[column_index]);
+              print_record((*row)[column_index]);
             }
             std::cout <<std::endl;
            }
