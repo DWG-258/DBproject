@@ -166,15 +166,23 @@ void terminal::run_command(const std::string& command){
         }else if(token == "update"){
             std::string table_name;
             iss >> table_name;
-            std::string column_name;
-            iss >> column_name;
             iss >> token;
             if(token != "set"){
                 std::cerr << "Error: Invalid command syntax." << std::endl;
                 return;
             }
+            std::string column_name;
+            iss >> column_name;
+         
+            
+           
+            iss>>token;
+            if(token != "=")
+            {
+                std::cerr << "Error: Invalid command syntax." << token<< std::endl;
+            }
             std::string value_str;
-            iss >> value_str;
+             iss >> value_str;
             record value;
             if(is_int_(value_str)){
                 value = std::stoi(value_str);
@@ -603,6 +611,59 @@ void terminal::select_from_table(const std::string& table_name,const std::vector
             }
 void terminal::update_table(const std::string& table_name,const std::string& column_name,
                            const record& value, const std::string& condition){
+ //获取条件
+            std::vector<std::string> condition_parts;
+            //获取要查询的表
+            auto cur_table = current_database->get_table(table_name);
+         
+            //无条件，则查找全表
+            if(condition.empty())
+            {
+                std::cout << "\033[34mSelecting all rows from table \033[0m" << table_name << "..." << std::endl;
+                
+                if(!current_database)
+                {
+                    std::cerr << "Error: No database is currently in use." << std::endl;
+                    return;
+                }
+                if(cur_table.get()==nullptr)
+                {
+                    std::cerr << "Table "<< table_name << " not found in database "<< current_db << "." << std::endl;
+                    return;
+
+                }
+            
+                 cur_table->update_row(column_name,value,condition_parts);
+                
+                
+            }
+            else{
+                //有条件，则查找满足条件的数据
+                //先解析条件
+              
+               condition_parts = split_by_space(condition);
+               if(condition_parts.size()!=3)
+               {
+                   std::cerr << "\033[31mError: Invalid condition.\033[0m" << std::endl;
+                   return;
+               }
+               //获取列索引
+               int coulmn_index=cur_table->get_column_index(condition_parts[0]);
+               auto [condition_type,condition_value] = get_type(condition_parts[2]);
+                //判断列类型和条件类型是否相等
+               if(cur_table->get_column_types()[coulmn_index]!=condition_type)
+               {
+                std::cout<<type_to_string(cur_table->get_column_types()[coulmn_index])<<type_to_string(condition_type)<<std::endl;
+                std::cerr << "\033[31mError: wrong type in condition.\033[0m" << std::endl;
+                return;
+               }
+
+                std::cout << "Selecting rows from table " << table_name << " where " << condition << "..." << std::endl;
+                // 目前在只支持一个的列名
+              
+                cur_table->update_row(column_name,value,condition_parts);
+                return;
+            }
 
                            }
 void terminal::delete_from_table(const std::string& table_name, const std::string& condition){

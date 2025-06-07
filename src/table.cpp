@@ -139,8 +139,65 @@ void table::insert_row(const row& new_row,std::filesystem::path file_path)
     // std::cout << "suuccess insert to file" << std::endl;
 }
 
-void table::update_row(const row& old_row, const row& new_row)
+
+
+void table::update_row(const std::string& column_name,const record& value,const std::vector<std::string>& condition)
 {
+    //无条件
+    if(condition.size() == 0)
+    {
+
+        return;
+    }
+    int column_index=  get_column_index(column_name);
+     int column_index_inCondintion = get_column_index(condition[0]);
+     auto [condition_type,condition_value]= get_type(condition[2]);
+    
+    if(condition[1]=="=")
+    {
+         for(auto it=data.begin();it!=data.end();it++){
+ 
+        auto& row=*(*it);
+        
+        if(row[column_index_inCondintion]==condition_value){
+            print_record(row[column_index]);
+            print_record(value);
+            row[column_index]=value;
+             print_record(row[column_index]);
+            std::cout <<"successfully update" << std::endl;
+            break;
+        }
+
+    }
+    }
+    else if(condition[1]==">")
+    { 
+         for(auto it=data.begin();it!=data.end();it++){
+ 
+        auto row=*(*it);
+        
+        if(row[column_index_inCondintion]>condition_value){
+            row[column_index]=value;
+            std::cout <<"successfully update" << std::endl;
+            break;
+        }
+
+    }
+    }
+    else if(condition[1]=="<")
+    {
+         for(auto it=data.begin();it!=data.end();it++){
+ 
+        auto row=*(*it);
+        
+        if(row[column_index_inCondintion]<condition_value){
+            row[column_index]=value;
+            std::cout <<"successfully update" << std::endl;
+            break;
+        }
+
+    }
+    }
 
 }
 
@@ -154,11 +211,12 @@ void table::delete_row(const std::vector<std::string>& condition)
    int column_index_inCondintion = get_column_index(condition[0]);
    auto [condition_type,condition_value]= get_type(condition[2]);
  
-
-    for(auto it=data.begin();it!=data.end();it++){
+    if(condition[1]=="=")
+    {
+         for(auto it=data.begin();it!=data.end();it++){
  
         auto row=*(*it);
-  
+        
         if(row[column_index_inCondintion]==condition_value){
             data.erase(*it);
             primary_key_index_map.erase((row)[primary_key_index]);
@@ -166,6 +224,37 @@ void table::delete_row(const std::vector<std::string>& condition)
             break;
         }
 
+    }
+    }
+    else if(condition[1]==">")
+    { 
+         for(auto it=data.begin();it!=data.end();it++){
+ 
+        auto row=*(*it);
+        
+        if(row[column_index_inCondintion]>condition_value){
+            data.erase(*it);
+            primary_key_index_map.erase((row)[primary_key_index]);
+            std::cout <<"successfully delete" << std::endl;
+            break;
+        }
+
+    }
+    }
+    else if(condition[1]=="<")
+    {
+         for(auto it=data.begin();it!=data.end();it++){
+ 
+        auto row=*(*it);
+        
+        if(row[column_index_inCondintion]<condition_value){
+            data.erase(*it);
+            primary_key_index_map.erase((row)[primary_key_index]);
+            std::cout <<"successfully delete" << std::endl;
+            break;
+        }
+
+    }
     }
 
 

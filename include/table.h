@@ -56,6 +56,9 @@ class table{
     void delete_all();
     template<typename variable_type>
     void print_record(const variable_type& v);
+    void update_row(const std::string& column_name,const record& value,const std::vector<std::string>& condition);
+
+
     std::vector<std::string> get_column_names() const
     {
         return column_names;
