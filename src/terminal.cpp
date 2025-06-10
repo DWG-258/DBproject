@@ -520,6 +520,10 @@ std::pair<bool,std::filesystem::path> find_table_infile(const std::string& table
 
 void terminal::insert_into_table(const std::string& table_name,const row& values){
      std::string& db_name = current_db;
+     if(db_name.empty())
+     {
+          std::cerr << "Error: No database is currently in use." << std::endl;
+     }
      //在文件中查找表
      std::pair<bool,std::filesystem::path> find_result = find_table_infile(table_name,db_name);
      if(!(find_result.first))
@@ -555,6 +559,10 @@ void terminal::select_from_table(const std::string& table_name,const std::vector
                                  const std::string& condition)
 
             {
+                  if(current_database.get()==nullptr)
+                    {
+                        std::cerr << "Error: No database is currently in use." << std::endl;
+                    }
             //获取条件
             std::vector<std::string> condition_parts;
             //获取要查询的表
@@ -611,7 +619,13 @@ void terminal::select_from_table(const std::string& table_name,const std::vector
             }
 void terminal::update_table(const std::string& table_name,const std::string& column_name,
                            const record& value, const std::string& condition){
- //获取条件
+                  
+        
+                if(current_database.get()==nullptr)
+                    {
+                        std::cerr << "Error: No database is currently in use." << std::endl;
+                    }
+             //获取条件
             std::vector<std::string> condition_parts;
             //获取要查询的表
             auto cur_table = current_database->get_table(table_name);
@@ -667,6 +681,11 @@ void terminal::update_table(const std::string& table_name,const std::string& col
 
                            }
 void terminal::delete_from_table(const std::string& table_name, const std::string& condition){
+
+              if(current_database.get()==nullptr)
+                    {
+                        std::cerr << "Error: No database is currently in use." << std::endl;
+                    }
     //获取条件
             std::vector<std::string> condition_parts;
             //获取要查询的表
