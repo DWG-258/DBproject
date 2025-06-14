@@ -40,7 +40,7 @@ void table::read_from_file(const std::filesystem::path& file_path) {
         if(line.empty()) continue;
         std::istringstream iss(line);
        
-        auto new_row = std::make_unique<row>();
+        auto new_row = std::make_shared<row>();
         std::string value;
         int index = 0;
         while(iss >> value){
@@ -63,14 +63,15 @@ void table::read_from_file(const std::filesystem::path& file_path) {
                 std::cout << "Error: Invalid row data in file: " << file_path.string() << std::endl;
                 return;
             }
-            primary_key_index_map[(*new_row)[primary_key_index]] = new_row.get();
-
+            primary_key_index_map[(*new_row)[primary_key_index]] = new_row;
+           
         }
         data.insert(std::move(new_row));
       
     }
     file.close();
 }
+
 
 void table::write_to_file(const std::filesystem::path& file_path) const {
     std::ofstream file(file_path);
@@ -96,22 +97,27 @@ void table::write_to_file(const std::filesystem::path& file_path) const {
     //写入paimary_key_index
     file << primary_key_index << std::endl;
     //写入数据
+    
     for(const auto& row : data){
+      
+    
         for(const auto& record : *row){
             std::visit([&file](auto&& arg){
                 file << arg << " ";
-                std::cout << arg << " ";
+
+            
             },record);
         }
         file << std::endl;
     }
+
     file.close();
     
 }
 
-void table::insert_row(const row& new_row,std::filesystem::path file_path)
+void table::insert_row(const row& new_row)
 {
-    std::unique_ptr<row> new_row_ptr = std::make_unique<row>(new_row);
+    std::shared_ptr<row> new_row_ptr = std::make_shared<row>(new_row);
     //获取主键在行中的具体数据
     auto primary_key_data = (*new_row_ptr)[primary_key_index];
     //首先检查是否有主建,无将则可以重复
@@ -129,9 +135,11 @@ void table::insert_row(const row& new_row,std::filesystem::path file_path)
             return;
         }
     }
-    //没有则插入，更新map索引
+    //没有则插入，更新map索引，先插入索引，move会
+     primary_key_index_map[primary_key_data] = new_row_ptr;
     data.insert(std::move(new_row_ptr));
-    primary_key_index_map[primary_key_data] = new_row_ptr.get();
+    print_record(primary_key_data);
+   
    }
     std::cout << "suuccessfully insert" << std::endl;
     //先不保存
@@ -163,6 +171,7 @@ void table::update_row(const std::string& column_name,const record& value,const 
             print_record(value);
             row[column_index]=value;
              print_record(row[column_index]);
+
             std::cout <<"successfully update" << std::endl;
             break;
         }
@@ -218,6 +227,7 @@ void table::delete_row(const std::vector<std::string>& condition)
         
         if(row[column_index_inCondintion]==condition_value){
             primary_key_index_map.erase((row)[primary_key_index]);
+
             data.erase(*it);
             
             std::cout <<"successfully delete" << std::endl;
@@ -230,11 +240,12 @@ void table::delete_row(const std::vector<std::string>& condition)
     { 
          for(auto it=data.begin();it!=data.end();it++){
  
-        auto row=*(*it);
+        auto& row=*(*it);
         
         if(row[column_index_inCondintion]>condition_value){
+              primary_key_index_map.erase((row)[primary_key_index]);
+            
             data.erase(*it);
-            primary_key_index_map.erase((row)[primary_key_index]);
             std::cout <<"successfully delete" << std::endl;
             break;
         }
@@ -245,11 +256,12 @@ void table::delete_row(const std::vector<std::string>& condition)
     {
          for(auto it=data.begin();it!=data.end();it++){
  
-        auto row=*(*it);
+        auto& row=*(*it);
         
         if(row[column_index_inCondintion]<condition_value){
-            data.erase(*it);
             primary_key_index_map.erase((row)[primary_key_index]);
+            
+            data.erase(*it);
             std::cout <<"successfully delete" << std::endl;
             break;
         }
@@ -322,6 +334,7 @@ void table::print_row_without_condition(const std::vector<std::string>& column_n
 void table::print_row_in_condition(const std::vector<std::string>& column_names,const std::vector<std::string>& condition)
 { 
     int column_index = get_column_index(column_names[0]);
+    
     if(column_index == -1)
     {
           for(auto& column_name : table::column_names)
@@ -344,7 +357,27 @@ void table::print_row_in_condition(const std::vector<std::string>& column_names,
 
    int column_index_inCondintion = get_column_index(condition[0]);
    auto [condition_type,condition_value]= get_type(condition[2]);
- 
+   //如果有主建并且通过主建查询
+   if(column_index_inCondintion  == primary_key_index)
+    {
+        if(primary_key_index_map.find(condition_value)!=primary_key_index_map.end())
+        {
+            auto row=primary_key_index_map[condition_value];
+            if(row==nullptr)
+            {
+                std::cerr<<"no such row" << std::endl;  
+            }
+            for(auto& record : *row)
+            {
+                print_record(record);
+            }
+        }
+        else
+        {
+            std::cout <<"no such primary key" << std::endl;
+        }
+        return;
+    }
     if(condition[1]=="=")
     {
        
@@ -418,6 +451,7 @@ void table::print_row_in_condition(const std::vector<std::string>& column_names,
 //有时间加入缓存功能TODO
 void table::select_column(const std::vector<std::string>& column_names,const std::vector<std::string>& condition)
 {
+    
 
     //第一选择其全选列,第二选择是非全选列
     if(column_names[0]=="*")
@@ -428,7 +462,8 @@ void table::select_column(const std::vector<std::string>& column_names,const std
         else
         {
             //全选列有条件
-            print_row_in_condition(column_names,condition);
+        
+             print_row_in_condition(column_names,condition);
         }
     }
     else
@@ -440,6 +475,7 @@ void table::select_column(const std::vector<std::string>& column_names,const std
       }
       else{
         //非全选列有条件
+
          print_row_in_condition(column_names,condition);
       }
      }

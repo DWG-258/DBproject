@@ -1,13 +1,11 @@
 #include "helper.h"
 bool is_double_(const std::string& str){
-    try{
-        std::stod(str);
-        return true;
-    }catch(const std::invalid_argument&){
-        return false;
-    }catch(const std::out_of_range&){
-        return false;
+     if(is_int_(str)){
+        if(str.find(".")!=std::string::npos){
+            return true;
+        }
     }
+    return false;
 }
 
 bool is_int_(const std::string& str){
@@ -45,7 +43,7 @@ std::vector<std::string> split_by_space(const std::string& str)
 
 std::pair<type,value> get_type(const std::string& str)
 {
-     if(str.find('.') != std::string::npos)
+     if(is_double_(str))
      {
          return {type::DOUBLE,std::stod(str)};
      }

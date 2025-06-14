@@ -184,11 +184,14 @@ void terminal::run_command(const std::string& command){
             std::string value_str;
              iss >> value_str;
             record value;
-            if(is_int_(value_str)){
+            if(is_double_(value_str))
+            {
+                 value = std::stod(value_str);
+            }
+            else if(is_int_(value_str)){
                 value = std::stoi(value_str);
-            }else if(is_double_(value_str)){
-                value = std::stod(value_str);
-            }else if(auto quoted_value = in_quotation(value_str);quoted_value!=std::nullopt){
+            }
+            else if(auto quoted_value = in_quotation(value_str);quoted_value!=std::nullopt){
                 value = *quoted_value;
             }else{
                 std::cerr << "Error: Invalid value type." << std::endl;
@@ -418,6 +421,7 @@ void terminal::create_table(const std::string& table_name,const std::string& col
     auto new_table = std::make_shared<table>(table_name, column_names,column_types,primary_key_index);
     //将表定义写入文件
 
+    
     //先创建一个表文件
     std::string file_name= table_name + ".tbl";
     std::ofstream table_file(file_name);
@@ -436,6 +440,7 @@ void terminal::create_table(const std::string& table_name,const std::string& col
     //更新当前数据库的状态
     current_database->tables[table_name] = new_table;
 
+   
 
 }
 void terminal::drop_table(const std::string& table_name){
@@ -549,7 +554,7 @@ void terminal::insert_into_table(const std::string& table_name,const row& values
             return;
         }
         //进入表的层面添加数据，传入数据和了文件路径
-        current_database->get_table(table_name)->insert_row(values,find_result.second);
+        current_database->get_table(table_name)->insert_row(values);
      }
      
 }
@@ -667,7 +672,7 @@ void terminal::update_table(const std::string& table_name,const std::string& col
                 //判断列类型和条件类型是否相等
                if(cur_table->get_column_types()[coulmn_index]!=condition_type)
                {
-                std::cout<<type_to_string(cur_table->get_column_types()[coulmn_index])<<type_to_string(condition_type)<<std::endl;
+                std::cerr<<type_to_string(cur_table->get_column_types()[coulmn_index])<<type_to_string(condition_type)<<std::endl;
                 std::cerr << "\033[31mError: wrong type in condition.\033[0m" << std::endl;
                 return;
                }
