@@ -108,7 +108,7 @@ void terminal::run_command(const std::string& command){
                         
                         if(is_double_(_token)){
                             values_row.push_back(std::stod(_token));
-                            std::cout << "Quoted value: " << _token << std::endl;
+                
                         
                         }else if(is_int_(_token)){
                             values_row.push_back(std::stoi(_token));
@@ -116,7 +116,7 @@ void terminal::run_command(const std::string& command){
                             auto quoted_value = in_quotation(_token);
                             if(quoted_value!= std::nullopt){
                                 values_row.push_back(*quoted_value);
-                                std::cout << "Quoted value: " << *quoted_value << std::endl;
+                               
                             }else{
                                 std::cerr << "Error: Invalid value type."<<std::endl;
                                 return;
@@ -206,6 +206,7 @@ void terminal::run_command(const std::string& command){
             }
             update_table(table_name, column_name, value, condition);
         }else if(token == "delete"){
+            iss >> token;
             std::string table_name;
             iss >> table_name;
             std::string condition;
@@ -576,7 +577,7 @@ void terminal::select_from_table(const std::string& table_name,const std::vector
             //无条件，则查找全表
             if(condition.empty())
             {
-                std::cout << "\033[34mSelecting all rows from table \033[0m" << table_name << "..." << std::endl;
+                std::cout << "Selecting all rows from table" << table_name << "..." << std::endl;
                 
                 if(!current_database)
                 {
@@ -635,10 +636,10 @@ void terminal::update_table(const std::string& table_name,const std::string& col
             //获取要查询的表
             auto cur_table = current_database->get_table(table_name);
          
-            //无条件，则查找全表
+            //无条件则更新所有
             if(condition.empty())
             {
-                std::cout << "\033[34mSelecting all rows from table \033[0m" << table_name << "..." << std::endl;
+                std::cout << "update all rows from table " << table_name << "..." << std::endl;
                 
                 if(!current_database)
                 {
@@ -677,14 +678,13 @@ void terminal::update_table(const std::string& table_name,const std::string& col
                 return;
                }
 
-                std::cout << "Selecting rows from table " << table_name << " where " << condition << "..." << std::endl;
+                std::cout << "update row from table " << table_name << " where " << condition << "..." << std::endl;
                 // 目前在只支持一个的列名
               
                 cur_table->update_row(column_name,value,condition_parts);
                 return;
             }
-
-                           }
+ }
 void terminal::delete_from_table(const std::string& table_name, const std::string& condition){
 
               if(current_database.get()==nullptr)
@@ -699,7 +699,7 @@ void terminal::delete_from_table(const std::string& table_name, const std::strin
             //无条件，则是删除全表
             if(condition.empty())
             {
-                std::cout << "\033[34mSelecting all rows from table \033[0m" << table_name << "..." << std::endl;
+                std::cout << "Selecting all rows from table " << table_name << "..." << std::endl;
                 
                 if(!current_database)
                 {
@@ -724,7 +724,7 @@ void terminal::delete_from_table(const std::string& table_name, const std::strin
                condition_parts = split_by_space(condition);
                if(condition_parts.size()!=3)
                {
-                   std::cerr << "\033[31mError: Invalid condition.\033[0m" << std::endl;
+                   std::cerr << "Error: Invalid condition." << std::endl;
                    return;
                }
                //获取列索引
@@ -734,7 +734,7 @@ void terminal::delete_from_table(const std::string& table_name, const std::strin
                if(cur_table->get_column_types()[coulmn_index]!=condition_type)
                {
                 std::cout<<type_to_string(cur_table->get_column_types()[coulmn_index])<<type_to_string(condition_type)<<std::endl;
-                std::cerr << "\033[31mError: wrong type in condition.\033[0m" << std::endl;
+                std::cerr << "Error: wrong type in condition." << std::endl;
                 return;
                }
 

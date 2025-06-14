@@ -118,31 +118,27 @@ void table::write_to_file(const std::filesystem::path& file_path) const {
 void table::insert_row(const row& new_row)
 {
     std::shared_ptr<row> new_row_ptr = std::make_shared<row>(new_row);
-    //获取主键在行中的具体数据
-    auto primary_key_data = (*new_row_ptr)[primary_key_index];
     //首先检查是否有主建,无将则可以重复
     if(primary_key_index == -1){
         data.insert(std::move(new_row_ptr));
         return;
     }
    else{
+    //获取主键在行中的具体数据
+    auto primary_key_data = (*new_row_ptr)[primary_key_index];
     //如果有重复主建，则报错
-    for(auto & record:primary_key_index_map)
+    if(primary_key_index_map.find(primary_key_data) != primary_key_index_map.end())
     {
-        if(record.first == primary_key_data)
-        {
-            std::cerr << "primary key data already exists" << std::endl;
+         std::cerr << "primary key data already exists" << std::endl;
             return;
-        }
     }
     //没有则插入，更新map索引，先插入索引，move会
      primary_key_index_map[primary_key_data] = new_row_ptr;
     data.insert(std::move(new_row_ptr));
-    print_record(primary_key_data);
    
    }
     std::cout << "suuccessfully insert" << std::endl;
-    //先不保存
+
 
 }
 
@@ -150,27 +146,40 @@ void table::insert_row(const row& new_row)
 
 void table::update_row(const std::string& column_name,const record& value,const std::vector<std::string>& condition)
 {
+    //去引号
+
+    auto condition_second=*(in_quotation(condition[2]));
+     int column_index=  get_column_index(column_name);
+     int column_index_inCondintion = get_column_index(condition[0]);
+     auto [condition_type,condition_value]= get_type(condition_second);
+     
     //无条件
     if(condition.size() == 0)
     {
-
+        for(auto it=data.begin();it!=data.end();it++){
+ 
+            auto& row=*(*it);
+            row[column_index]=value;
+            std::cout <<"successfully update" << std::endl;
+        }
         return;
+        
     }
-    int column_index=  get_column_index(column_name);
-     int column_index_inCondintion = get_column_index(condition[0]);
-     auto [condition_type,condition_value]= get_type(condition[2]);
+
     
     if(condition[1]=="=")
     {
          for(auto it=data.begin();it!=data.end();it++){
  
         auto& row=*(*it);
-        
+       
+         
+    
+
         if(row[column_index_inCondintion]==condition_value){
-            print_record(row[column_index]);
-            print_record(value);
+           
             row[column_index]=value;
-             print_record(row[column_index]);
+          
 
             std::cout <<"successfully update" << std::endl;
             break;
@@ -358,7 +367,7 @@ void table::print_row_in_condition(const std::vector<std::string>& column_names,
    int column_index_inCondintion = get_column_index(condition[0]);
    auto [condition_type,condition_value]= get_type(condition[2]);
    //如果有主建并且通过主建查询
-   if(column_index_inCondintion  == primary_key_index)
+   if(column_index_inCondintion  == primary_key_index&&condition[1]=="="&&column_index==-1)
     {
         if(primary_key_index_map.find(condition_value)!=primary_key_index_map.end())
         {
@@ -367,10 +376,13 @@ void table::print_row_in_condition(const std::vector<std::string>& column_names,
             {
                 std::cerr<<"no such row" << std::endl;  
             }
+            
             for(auto& record : *row)
             {
                 print_record(record);
             }
+            
+            
         }
         else
         {
