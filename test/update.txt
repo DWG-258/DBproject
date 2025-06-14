@@ -1,0 +1,4 @@
+dblite> Using database: test_db
+Switched to database: test_db
+Command executed in 50369 microseconds.
+dblite(test_db)> update row from table test where name = user_11...

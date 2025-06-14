@@ -1,0 +1,3 @@
+dblite> Database test_db created successfully.
+Command executed in 98 microseconds.
+dblite> 

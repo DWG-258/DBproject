@@ -1,0 +1,3 @@
+dblite> Database test_db dropped successfully.
+Command executed in 108 microseconds.
+dblite> 
