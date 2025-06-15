@@ -33,12 +33,12 @@ class database {
     void save_tables() const;
 
 
-     //new 5.31
+  
      std::string get_name()
      {
          return database_name;
      }
-     std::shared_ptr<table>  get_table(std::string table_name)
+     std::shared_ptr<table> get_table(std::string table_name)
      {
           if(tables.find(table_name) == tables.end())
          {

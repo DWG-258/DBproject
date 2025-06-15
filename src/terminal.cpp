@@ -633,7 +633,7 @@ void terminal::update_table(const std::string& table_name,const std::string& col
                     }
              //获取条件
             std::vector<std::string> condition_parts;
-            //获取要查询的表
+            //获取要更新的表
             auto cur_table = current_database->get_table(table_name);
          
             //无条件则更新所有

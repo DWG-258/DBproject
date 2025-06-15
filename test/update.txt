@@ -1,7 +1,0 @@
-dblite> Using database: test_db
-Switched to database: test_db
-Command executed in 108462 microseconds.
-dblite(test_db)> update row from table test where name = user_11...
-successfully update
-Command executed in 135 microseconds.
-dblite(test_db)> All tables saved successfully.

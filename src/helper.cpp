@@ -35,6 +35,7 @@ std::vector<std::string> split_by_space(const std::string& str)
     std::string word;
 
     while (iss >> word) {  // 自动跳过连续空格
+        word=in_quotation(word).value_or(word);
         result.push_back(word);
     }
 

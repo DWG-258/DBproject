@@ -1,9 +1,10 @@
 create database test passed
 create table test passed
-[info] 查询语句生成完毕：../test/select_10k.in
-[info] 查询执行耗时：176 毫秒
+[info] 插入执行耗时：612 毫秒
+[pass] insert 10k test passed
+[info] 查询执行耗时：310 毫秒
 [pass] select 10k test passed, total rows: 10000
 update test passed
-[info] 查询语句生成完毕：../test/select_10k.in
-[info] 查询执行耗时：178 毫秒
-[pass] select 10k test passed, total rows: 10000
+delete test passed
+drop table test passed
+drop database test passed

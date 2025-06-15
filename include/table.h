@@ -29,10 +29,7 @@ class table{
     std::vector<std::string> column_names;
     //该map为主建索引，即主键的的数据和行
     std::map<record,std::shared_ptr<row>> primary_key_index_map;
-
-
     std::vector<type> column_types;
-    std::map<std::string,type> column_type_map;
     int primary_key_index = -1;
     public:
     //这个构造函数是从文件中读取表数据

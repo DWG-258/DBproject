@@ -1,6 +1,0 @@
-dblite> Using database: test_db
-Switched to database: test_db
-Command executed in 128 microseconds.
-dblite(test_db)> Table test created successfully.
-Command executed in 173 microseconds.
-dblite(test_db)> All tables saved successfully.

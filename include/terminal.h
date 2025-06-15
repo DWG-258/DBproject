@@ -114,6 +114,7 @@ class terminal{
                     << "delete from <table_name> where <condition>;\n"
                     << "close;\n"//关闭当前的数据库
                     << "exit;\n"
-                    << "help;\n";
+                    << "help;\n"
+                    << "ls;\n";
     }
 };

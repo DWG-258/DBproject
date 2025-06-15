@@ -138,53 +138,52 @@ void table::insert_row(const row& new_row)
    
    }
     std::cout << "suuccessfully insert" << std::endl;
-
-
 }
 
 
 
 void table::update_row(const std::string& column_name,const record& value,const std::vector<std::string>& condition)
 {
-    //去引号
 
-    
      int column_index=  get_column_index(column_name);
      int column_index_inCondintion = get_column_index(condition[0]);
      auto [condition_type,condition_value]= get_type(condition[2]);
-     
+
     //无条件
     if(condition.size() == 0)
     {
         for(auto it=data.begin();it!=data.end();it++){
- 
             auto& row=*(*it);
             row[column_index]=value;
             std::cout <<"successfully update" << std::endl;
         }
         return;
-        
     }
-
-    
+     //如果有主建并且通过主建查询并更新
+   if(column_index_inCondintion  == primary_key_index&&condition[1]=="="&&column_index==-1)
+    {
+        if(primary_key_index_map.find(condition_value)!=primary_key_index_map.end())
+        {
+            auto& row=primary_key_index_map[condition_value];
+            if(row==nullptr)
+                std::cerr<<"no such row" << std::endl;  
+            (*row)[column_index]=value;
+        }
+        else
+        {
+            std::cout <<"no such primary key" << std::endl;
+        }
+        return;
+    }
     if(condition[1]=="=")
     {
-         for(auto it=data.begin();it!=data.end();it++){
- 
+        for(auto it=data.begin();it!=data.end();it++){
         auto& row=*(*it);
-       
-         
-    
-
         if(row[column_index_inCondintion]==condition_value){
-           
             row[column_index]=value;
-          
-
             std::cout <<"successfully update" << std::endl;
             break;
         }
-
     }
     }
     else if(condition[1]==">")
@@ -227,22 +226,30 @@ void table::delete_row(const std::vector<std::string>& condition)
 {
    int column_index_inCondintion = get_column_index(condition[0]);
    auto [condition_type,condition_value]= get_type(condition[2]);
- 
+    if(column_index_inCondintion  == primary_key_index&&condition[1]=="=")
+    {
+        if(primary_key_index_map.find(condition_value)!=primary_key_index_map.end())
+        {
+            auto& row=primary_key_index_map[condition_value];
+            if(row==nullptr)
+                std::cerr<<"no such row" << std::endl;  
+            primary_key_index_map.erase((*row)[primary_key_index]);
+            data.erase(row);
+        }
+        else
+            std::cout <<"no such primary key" << std::endl;
+        return;
+    }
     if(condition[1]=="=")
     {
          for(auto it=data.begin();it!=data.end();it++){
- 
         auto& row=*(*it);
-        
         if(row[column_index_inCondintion]==condition_value){
             primary_key_index_map.erase((row)[primary_key_index]);
-
             data.erase(*it);
-            
             std::cout <<"successfully delete" << std::endl;
             break;
         }
-
     }
     }
     else if(condition[1]==">")
@@ -362,8 +369,6 @@ void table::print_row_in_condition(const std::vector<std::string>& column_names,
         std::cout <<std::endl;
   
     }
-
-
    int column_index_inCondintion = get_column_index(condition[0]);
    auto [condition_type,condition_value]= get_type(condition[2]);
    //如果有主建并且通过主建查询
@@ -373,16 +378,9 @@ void table::print_row_in_condition(const std::vector<std::string>& column_names,
         {
             auto row=primary_key_index_map[condition_value];
             if(row==nullptr)
-            {
                 std::cerr<<"no such row" << std::endl;  
-            }
-            
             for(auto& record : *row)
-            {
                 print_record(record);
-            }
-            
-            
         }
         else
         {
@@ -391,29 +389,24 @@ void table::print_row_in_condition(const std::vector<std::string>& column_names,
         return;
     }
     if(condition[1]=="=")
-    {
-       
+    { 
         for(auto& row : data){
             if(!row) continue;
            if((*row)[column_index_inCondintion]==condition_value)
            {
             if(column_index==-1)
             {
-                
                 //其打印全部列
-                    for(auto& record : *row){
-                       print_record(record);
-                    }           
+                    for(auto& record : *row)
+                       print_record(record);                 
             }
             else{
                 //打印选中列
                print_record((*row)[column_index]);
             }
             std::cout <<std::endl;   
-            }
-           
+            } 
         }
-
     }
     else if(condition[1]=="<")
     {
@@ -460,7 +453,7 @@ void table::print_row_in_condition(const std::vector<std::string>& column_names,
     
    
 }
-//有时间加入缓存功能TODO
+
 void table::select_column(const std::vector<std::string>& column_names,const std::vector<std::string>& condition)
 {
     
