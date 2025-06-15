@@ -1,7 +1,7 @@
 dblite> Using database: test_db
 Switched to database: test_db
-Command executed in 61233 microseconds.
+Command executed in 200426 microseconds.
 dblite(test_db)> Table where does not exist.
 Selecting all rows from table where...
-Command executed in 17 microseconds.
+Command executed in 65 microseconds.
 dblite(test_db)> All tables saved successfully.

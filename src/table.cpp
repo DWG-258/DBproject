@@ -148,10 +148,10 @@ void table::update_row(const std::string& column_name,const record& value,const 
 {
     //去引号
 
-    auto condition_second=*(in_quotation(condition[2]));
+    
      int column_index=  get_column_index(column_name);
      int column_index_inCondintion = get_column_index(condition[0]);
-     auto [condition_type,condition_value]= get_type(condition_second);
+     auto [condition_type,condition_value]= get_type(condition[2]);
      
     //无条件
     if(condition.size() == 0)

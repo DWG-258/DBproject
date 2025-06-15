@@ -1,8 +1,6 @@
-dblite> Using database: test_db
-Switched to database: test_db
-Command executed in 106884 microseconds.
-dblite(test_db)> Selecting all rows from tabletest...
 id name score 
+0 2 1 
+0
 2 user_2 93.4 
 10 user_10 91.5 
 1 user_1 95.2 
@@ -10003,5 +10001,3 @@ id name score
 9998 user_9998 73.5 
 9999 user_9999 77.1 
 10000 user_10000 73.8 
-Command executed in 25832 microseconds.
-dblite(test_db)> All tables saved successfully.

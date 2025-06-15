@@ -21,7 +21,6 @@ echo "[info] 查询执行耗时：$elapsed_ms 毫秒"
 # 统计查询到的行数
 row_count=$(grep -c "user_" ../test/select_10k_result.txt)
 
-row_count=$((row_count - 1))
 
 if [ "$row_count" -eq 10000 ]; then
     echo "[pass] select 10k test passed, total rows: $row_count"
